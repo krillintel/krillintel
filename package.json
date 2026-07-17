@@ -1,18 +1,23 @@
 {
   "name": "krill-web",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "directories": {
-    "doc": "docs"
+  "description": "KRILL — AI-powered launch intelligence terminal on Robinhood Chain",
+  "homepage": "https://krill.live",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/krillintel/krillintel.git"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "cd worker && npm run dev",
+    "test": "cd worker && npm test",
+    "deploy": "cd worker && npm run deploy"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "playwright": "^1.61.1"
-  }
+  "keywords": [
+    "krill",
+    "virtuals-protocol",
+    "robinhood-chain",
+    "trading-intelligence",
+    "cloudflare-workers"
+  ],
+  "license": "MIT"
 }

@@ -1,10 +1,17 @@
-# KRILL
+<div align="center">
+
+# 🦐 KRILL
 
 **AI-Powered Trading Intelligence on Robinhood Chain**
 
-KRILL is a launch-intelligence terminal for the Virtuals Protocol ecosystem on Robinhood Chain (EVM, chainId 4663). It pairs a live web terminal UI with a Cloudflare Worker API that surfaces agent status, clarity signals, and launch tracking.
+Launch-intelligence terminal for the Virtuals Protocol ecosystem — scan, score & explain new token launches in real time.
 
-🌐 Live: [krill.live](https://krill.live)
+[![Live](https://img.shields.io/badge/live-krill.live-14F195?style=flat-square)](https://krill.live)
+[![Chain](https://img.shields.io/badge/chain-Robinhood%204663-8B5CF6?style=flat-square)](https://krill.live)
+[![Cloudflare Workers](https://img.shields.io/badge/API-Cloudflare%20Workers-F38020?style=flat-square&logo=cloudflare&logoColor=white)](https://workers.cloudflare.com)
+[![Tests](https://img.shields.io/badge/tests-31%20passing-3FB950?style=flat-square)](worker/src/index.test.js)
+
+</div>
 
 ---
 
