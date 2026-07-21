@@ -229,6 +229,112 @@ ul { list-style: none; }
   box-shadow: 0 8px 28px rgba(74, 222, 128, 0.25);
 }
 
+/* Contract address bar */
+.ca-bar {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  margin-bottom: 22px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(10, 15, 10, 0.6);
+  max-width: 100%;
+}
+
+.ca-bar[data-state="live"] {
+  border-color: rgba(74, 222, 128, 0.35);
+  box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.08), 0 6px 24px rgba(74, 222, 128, 0.08);
+}
+
+.ca-label {
+  font-family: var(--body);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: var(--green);
+  flex: none;
+}
+
+.ca-value {
+  font-family: ui-monospace, "IBM Plex Mono", monospace;
+  font-size: 13px;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ca-bar[data-state="pending"] .ca-value {
+  color: var(--mute);
+  font-style: italic;
+}
+
+.ca-copy {
+  flex: none;
+  font-family: var(--body);
+  font-size: 12px;
+  font-weight: 600;
+  color: #041008;
+  background: var(--green);
+  border: 0;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.ca-copy:hover { background: #6ee7a0; }
+
+.ca-live {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+  width: 100%;
+}
+
+.ca-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+
+.ca-stat-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.ca-stat span:last-child {
+  color: var(--green);
+  font-weight: 600;
+  font-family: ui-monospace, "IBM Plex Mono", monospace;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn-ghost {
+  color: var(--green);
+  background: transparent;
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  box-shadow: none;
+}
+
+.btn-ghost:hover {
+  background: rgba(74, 222, 128, 0.08);
+  color: var(--green);
+}
+
 @keyframes logoIn {
   from { opacity: 0; transform: scale(0.9); }
   to { opacity: 1; transform: scale(1); }

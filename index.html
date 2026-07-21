@@ -57,7 +57,23 @@
           A launch intelligence agent for the Robinhood era.
           KRILL reads the noise, scores clarity, explains the risk, and publishes what anyone can verify.
         </p>
-        <a class="btn" href="#how">See how it works</a>
+
+        <!-- CONTRACT ADDRESS BAR — set window.KRILL_CA below to go live -->
+        <div class="ca-bar" id="caBar" data-state="pending">
+          <span class="ca-label">CONTRACT</span>
+          <code class="ca-value" id="caValue">Launching soon on Virtuals</code>
+          <button class="ca-copy" id="caCopy" type="button" aria-label="Copy contract address" hidden>Copy</button>
+          <div class="ca-live" id="caLive" hidden>
+            <span class="ca-stat"><span class="ca-stat-label">Price</span> <span id="caPrice">$0.000</span></span>
+            <span class="ca-stat"><span class="ca-stat-label">MCap</span> <span id="caMcap">$0</span></span>
+            <span class="ca-stat"><span class="ca-stat-label">Holders</span> <span id="caHolders">—</span></span>
+          </div>
+        </div>
+
+        <div class="hero-actions">
+          <a class="btn" href="#how">See how it works</a>
+          <a class="btn btn-ghost" id="tradeBtn" href="https://x.com/krillintel" target="_blank" rel="noreferrer">Live on Virtuals</a>
+        </div>
       </div>
     </section>
 
@@ -220,6 +236,69 @@
   </footer>
 
   <script>
+    /* ─────────────────────────────────────────────────────────────
+       $KRILL CONTRACT — after launch, paste the address + trade link
+       here and redeploy. Leave CA empty ('') to show "Launching soon".
+       ───────────────────────────────────────────────────────────── */
+    window.KRILL_CA = '0x9D08407b8511249bec898856C506dD7c5972E7BB';
+    window.KRILL_TRADE_URL = 'https://app.virtuals.io/virtuals/token/0x9D08407b8511249bec898856C506dD7c5972E7BB';
+
+    (function () {
+      const ca = (window.KRILL_CA || '').trim();
+      const bar = document.getElementById('caBar');
+      const val = document.getElementById('caValue');
+      const copy = document.getElementById('caCopy');
+      const trade = document.getElementById('tradeBtn');
+      const live = document.getElementById('caLive');
+      const priceEl = document.getElementById('caPrice');
+      const mcapEl = document.getElementById('caMcap');
+      const holdersEl = document.getElementById('caHolders');
+
+      if (ca) {
+        bar.dataset.state = 'live';
+        val.textContent = ca;
+        copy.hidden = false;
+        live.hidden = false;
+
+        copy.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(ca);
+            copy.textContent = 'Copied';
+            setTimeout(() => (copy.textContent = 'Copy'), 1400);
+          } catch (_) {
+            const r = document.createRange(); r.selectNode(val);
+            const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+          }
+        });
+
+        // Fetch live price/mcap/holders from worker /token endpoint
+        const API_BASE = location.hostname === 'krill.live' ? '/api' : 
+                         location.hostname === 'localhost' ? 'http://localhost:8787/api' :
+                         'https://krill-api.gedangefek.workers.dev/api';
+
+        async function updateLiveData() {
+          try {
+            const res = await fetch(`${API_BASE}/token`);
+            if (!res.ok) return;
+            const data = await res.json();
+            if (priceEl) priceEl.textContent = data.priceUsd ? `$${data.priceUsd}` : '$0.000';
+            if (mcapEl) mcapEl.textContent = data.marketCapFmt || '$0';
+            if (holdersEl) holdersEl.textContent = data.holders || '—';
+          } catch (e) {
+            console.warn('Failed to fetch live token data:', e);
+          }
+        }
+
+        updateLiveData();
+        setInterval(updateLiveData, 30000); // refresh every 30s
+      }
+
+      if (window.KRILL_TRADE_URL) {
+        trade.href = window.KRILL_TRADE_URL;
+        trade.textContent = 'Trade $KRILL';
+      }
+    })();
+
     (function () {
       const items = document.querySelectorAll('.step, .report, .why-grid, .close');
       if (!('IntersectionObserver' in window)) {

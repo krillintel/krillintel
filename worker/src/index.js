@@ -4,7 +4,7 @@
 // Deploy: npx wrangler deploy
 
 const START_TIME = Date.now();
-const CA = 'KRILL-VIRTUALS-ROBINHOOD-PRELAUNCH'; // replace with real ERC-20 address post-launch
+const CA = '0x9D08407b8511249bec898856C506dD7c5972E7BB'; // $KRILL ERC-20 on Robinhood Chain
 const CHAIN_ID = 4663; // Robinhood chain
 const TOTAL_SUPPLY = 1_000_000_000;
 const HEX = '0123456789abcdef';
@@ -150,7 +150,7 @@ const routes = {
     return { address: CA, balance: parseFloat(bal.toFixed(4)), krill: tokenData.circulatingSupply, stakedKrill: 1_920_000, stakedNote: 'reserved for agent compute', chain: 'robinhood', chainId: CHAIN_ID, explorer: `https://explorer.robinhood.com/address/${CA}` };
   },
 
-  '/deploy': () => ({ template: 'launch-intelligence-agent', status: 'PRELAUNCH', container: 'krill-intel-0a3f2', region: 'global', rpc: 'virtuals-agent-layer', uptime: uptimeStr() }),
+  '/deploy': () => ({ template: 'launch-intelligence-agent', status: 'LIVE', ca: CA, container: 'krill-intel-0a3f2', region: 'global', rpc: 'virtuals-agent-layer', trade: `https://app.virtuals.io/virtuals/token/${CA}`, uptime: uptimeStr() }),
 
   '/scan': async (req, env) => {
     mem.scanTotal += irand(0, 3);

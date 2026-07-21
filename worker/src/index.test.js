@@ -48,7 +48,8 @@ describe('GET /api/deploy', () => {
   it('returns deploy info', async () => {
     const { data } = await call('/deploy');
     expect(data.template).toBe('launch-intelligence-agent');
-    expect(data.status).toBe('PRELAUNCH');
+    expect(data.status).toBe('LIVE');
+    expect(data.ca).toMatch(/^0x[0-9a-fA-F]{40}$/);
     expect(data.uptime).toBeDefined();
   });
 });

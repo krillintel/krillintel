@@ -20,7 +20,7 @@
 
   // ── local mock (fallback when API is down) ──
   const startTime = Date.now();
-  const MOCK_WALLET = 'KRILL-VIRTUALS-ROBINHOOD-PRELAUNCH';
+  const MOCK_WALLET = '0x9D08407b8511249bec898856C506dD7c5972E7BB';
   const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
   // ── local mutable state (defined early so MOCK can reference it) ──
@@ -52,19 +52,19 @@
 
   const MOCK = {
     '/status': () => ({
-      mode: state.mode, chain: 'robinhood launch track', chainId: 'virtuals-prelaunch',
+      mode: state.mode, chain: 'robinhood', chainId: 4663,
       uptime: mockUptime(), wallet: MOCK_WALLET,
       sol: 12.47, krill: 2_847_391, stakedKrill: 1_920_000,
       template: 'launch-intelligence-agent', deployed: '2026-07-15', ts: Date.now(),
     }),
     '/wallet': () => ({
       address: MOCK_WALLET, sol: 12.47, krill: 2_847_391, stakedKrill: 1_920_000,
-      stakedNote: 'reserved for agent compute', chain: 'robinhood launch track', chainId: 'virtuals-prelaunch',
-      explorer: 'profile pending after Virtuals launch',
+      stakedNote: 'reserved for agent compute', chain: 'robinhood', chainId: 4663,
+      explorer: `https://explorer.robinhood.com/address/${MOCK_WALLET}`,
     }),
     '/deploy': () => ({
-      template: 'launch-intelligence-agent', status: 'PRELAUNCH', container: 'krill-intel-0a3f2',
-      region: 'global', rpc: 'virtuals-agent-layer', uptime: mockUptime(),
+      template: 'launch-intelligence-agent', status: 'LIVE', ca: MOCK_WALLET, container: 'krill-intel-0a3f2',
+      region: 'global', rpc: 'virtuals-agent-layer', trade: `https://app.virtuals.io/virtuals/token/${MOCK_WALLET}`, uptime: mockUptime(),
     }),
     '/scan': () => ({
       total: 12847, avgScanMs: 8, targets: 23, captured: 14, missed: 9,
