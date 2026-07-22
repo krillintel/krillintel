@@ -226,6 +226,24 @@ describe('GET /api/stats', () => {
   });
 });
 
+describe('GET /api/reports', () => {
+  it('returns watchlist with safety on every report', async () => {
+    const { data } = await call('/reports');
+    expect(data.reports).toBeInstanceOf(Array);
+    expect(data.reports.length).toBeGreaterThan(0);
+    for (const r of data.reports) {
+      expect(r.token).toBeTypeOf('string');
+      expect(r.score).toBeTypeOf('number');
+      expect(r.safety).toMatch(/^(SAFE|CAUTION|NOT SAFE)$/);
+    }
+    // safety must stay consistent with score thresholds
+    for (const r of data.reports) {
+      const expected = r.score >= 70 ? 'SAFE' : r.score >= 50 ? 'CAUTION' : 'NOT SAFE';
+      expect(r.safety).toBe(expected);
+    }
+  });
+});
+
 describe('GET /api/holders', () => {
   it('returns holder data', async () => {
     const { data } = await call('/holders');

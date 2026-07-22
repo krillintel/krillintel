@@ -124,6 +124,10 @@
     .row-item .sc.mixed { color: var(--warn); }
     .row-item .sc.noisy { color: var(--red); }
     .row-item .tk { font-family: var(--mono); font-size: 15px; color: var(--ink); }
+    .row-item .tk .safe-badge { display: inline-block; margin-top: 5px; font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 0.5px; padding: 2px 7px; border-radius: 6px; white-space: nowrap; }
+    .safe-badge.safe { background: rgba(74,222,128,0.12); color: var(--green); border: 1px solid rgba(74,222,128,0.4); }
+    .safe-badge.caution { background: rgba(251,191,36,0.1); color: var(--warn); border: 1px solid rgba(251,191,36,0.35); }
+    .safe-badge.notsafe { background: rgba(248,113,113,0.1); color: var(--red); border: 1px solid rgba(248,113,113,0.35); }
     .row-item .vd { font-size: 13.5px; color: var(--mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     .muted { color: var(--dim); font-size: 13px; font-family: var(--mono); }
@@ -193,6 +197,10 @@
     const $ = s => document.querySelector(s);
     const clean = t => t.trim().replace(/^\$+/, '').toUpperCase();
     const labelClass = l => l === 'READABLE' ? 'readable' : l === 'MIXED' ? 'mixed' : 'noisy';
+    // safety helpers — derive from score if API omits `safety` (backward-safe)
+    const safetyOf = d => d.safety || (d.score >= 70 ? 'SAFE' : d.score >= 50 ? 'CAUTION' : 'NOT SAFE');
+    const safetyClass = s => s === 'SAFE' ? 'safe' : s === 'CAUTION' ? 'caution' : 'notsafe';
+    const safetyIcon = s => s === 'SAFE' ? '✓ SAFE' : s === 'CAUTION' ? '⚠ CAUTION' : '✗ NOT SAFE';
     const circ = 2 * Math.PI * 84; // r=84
 
     // last scanned token + wallet, so gate unlock can re-render
@@ -244,10 +252,7 @@
         </div>
         <div>
           <div class="rtoken">$${d.token.replace(/^\$/,'')}</div>
-          <div class="rmeta">
-            <span style="font-weight:600;color:${d.safety === 'SAFE' ? 'var(--green)' : d.safety === 'CAUTION' ? 'var(--warn)' : 'var(--red)'}">${d.safety === 'SAFE' ? '✓ SAFE' : d.safety === 'CAUTION' ? '⚠ CAUTION' : '✗ NOT SAFE'}</span>
-            · ${d.decision} · ${d.holders ?? 0} holders · top ${(d.topHolderPct ?? 0).toFixed ? d.topHolderPct.toFixed(1) : d.topHolderPct}%${d.onChain ? ' · on-chain' : ''}
-          </div>
+          <div class="rmeta"><span class="safe-badge ${safetyClass(safetyOf(d))}">${safetyIcon(safetyOf(d))}</span> · ${d.decision} · ${d.holders ?? 0} holders · top ${(d.topHolderPct ?? 0).toFixed ? d.topHolderPct.toFixed(1) : d.topHolderPct}%${d.onChain ? ' · on-chain' : ''}</div>
           ${right}
         </div>
       </div>`;
@@ -296,12 +301,15 @@
       try {
         const d = await fetch(`${API}/reports`).then(r => r.json());
         $('#wlHint').textContent = `${d.count} scored · ${d.onChain ? 'on-chain' : 'live engine'}`;
-        $('#watchlist').innerHTML = d.reports.map(r => `
+        $('#watchlist').innerHTML = d.reports.map(r => {
+          const sf = safetyOf(r);
+          return `
           <div class="row-item" data-token="${r.token}">
             <div class="sc ${labelClass(r.label)}">${r.score}</div>
-            <div class="tk">${r.token}</div>
+            <div class="tk">${r.token}<br><span class="safe-badge ${safetyClass(sf)}">${safetyIcon(sf)}</span></div>
             <div class="vd">${r.verdict}</div>
-          </div>`).join('');
+          </div>`;
+        }).join('');
         document.querySelectorAll('.row-item').forEach(el => {
           el.onclick = () => { const t = el.getAttribute('data-token'); $('#q').value = t; scan(t); window.scrollTo({ top: 0, behavior: 'smooth' }); };
         });

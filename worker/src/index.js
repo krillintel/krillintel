@@ -440,7 +440,7 @@ const routes = {
       // only $KRILL uses live on-chain distribution; others use stable signal seeds
       const td = token === '$KRILL' ? tokenData : { topHolderPct: seeded(token, 'thp', 20, 85), holderCount: Math.round(seeded(token, 'hc', 20, 1200)) };
       const r = computeScore(token, td);
-      return { token, score: r.score, label: r.label, decision: r.decision, verdict: r.verdict, id: `brief-${token.slice(1).toLowerCase()}-${hashStr(token) % 1000}` };
+      return { token, score: r.score, label: r.label, decision: r.decision, safety: r.safety, verdict: r.verdict, id: `brief-${token.slice(1).toLowerCase()}-${hashStr(token) % 1000}` };
     }).sort((a, b) => b.score - a.score);
     return { count: reports.length, reports, generatedAt: Date.now(), onChain: !!env?.RPC_URL };
   },
