@@ -203,11 +203,17 @@ describe('GET /api/token', () => {
 });
 
 describe('GET /api/score', () => {
-  it('returns score with signals', async () => {
+  it('returns gated score for public callers', async () => {
     const { data } = await call('/score');
     expect(data.score).toBeTypeOf('number');
-    expect(data.signals).toBeInstanceOf(Array);
     expect(data.decision).toMatch(/^(SIGNAL|SCAN|SKIP)$/);
+    expect(data.safety).toMatch(/^(SAFE|CAUTION|NOT SAFE)$/);
+    // Public tier (no qualifying wallet): breakdown + verdict are gated.
+    expect(data.gated).toBe(true);
+    expect(data.signals).toBeNull();
+    expect(data.verdict).toBeNull();
+    expect(data.access.tier).toBe('PUBLIC');
+    expect(data.access.features).toContain('score');
   });
 });
 

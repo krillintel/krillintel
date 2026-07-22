@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KRILL — Scan Terminal</title>
+  <meta name="description" content="Live launch intelligence. Score any token 0–100, read the plain-English verdict. Hold $KRILL to unlock the full breakdown.">
+  <meta name="theme-color" content="#4ade80">
+  <link rel="canonical" href="https://krill.live/scan.html">
+  <meta property="og:title" content="KRILL — Scan Terminal">
+  <meta property="og:description" content="Score any token 0–100. Read the verdict. Hold $KRILL to unlock the full breakdown.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://krill.live/scan.html">
+  <meta property="og:image" content="https://krill.live/assets/krill-scan-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@krillintel">
+  <meta name="twitter:image" content="https://krill.live/assets/krill-scan-card.png">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #040604; --bg-2: #0a0f0a; --ink: #eef5ef; --mute: #8a948a; --dim: #5a645a;
+      --line: #1a211a; --green: #4ade80; --green-deep: #16a34a; --warn: #fbbf24; --red: #f87171;
+      --display: "Syne", system-ui, sans-serif; --body: "IBM Plex Sans", system-ui, sans-serif;
+      --mono: "IBM Plex Mono", ui-monospace, monospace;
+      --pad: clamp(18px, 5vw, 48px); --max: 1040px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--body); background: var(--bg); color: var(--mute);
+      line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; min-height: 100vh;
+    }
+    a { color: inherit; text-decoration: none; }
+    .fx { position: fixed; inset: 0; z-index: -1; pointer-events: none;
+      background: radial-gradient(ellipse 90% 55% at 50% -10%, rgba(34,197,94,0.13), transparent 55%); }
+    .fx-grid { position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(74,222,128,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(74,222,128,0.03) 1px, transparent 1px);
+      background-size: 56px 56px; mask-image: radial-gradient(ellipse 70% 50% at 50% 10%, black, transparent); }
+
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 0 var(--pad); }
+
+    /* nav */
+    .nav { display: flex; align-items: center; justify-content: space-between; height: 64px; border-bottom: 1px solid var(--line); }
+    .nav .brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; color: var(--ink); font-size: 20px; letter-spacing: -0.5px; }
+    .nav .brand img { width: 28px; height: 28px; }
+    .nav .links { display: flex; gap: 22px; font-size: 14px; }
+    .nav .links a:hover { color: var(--green); }
+
+    /* header */
+    header.hero { padding: clamp(36px, 7vw, 72px) 0 24px; text-align: center; }
+    .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 5px; color: var(--green); text-transform: uppercase; }
+    header.hero h1 { font-family: var(--display); font-weight: 800; color: var(--ink); font-size: clamp(34px, 6vw, 58px); letter-spacing: -1.5px; margin: 14px 0 10px; line-height: 1.05; }
+    header.hero p { max-width: 560px; margin: 0 auto; font-size: clamp(15px, 2vw, 18px); }
+
+    /* search */
+    .search { display: flex; gap: 10px; max-width: 520px; margin: 30px auto 0; }
+    .search input {
+      flex: 1; background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px;
+      padding: 14px 18px; color: var(--ink); font-family: var(--mono); font-size: 15px; outline: none; transition: border-color .2s;
+    }
+    .search input:focus { border-color: rgba(74,222,128,0.5); }
+    .search input::placeholder { color: var(--dim); }
+    .btn {
+      background: var(--green); color: #04220f; border: none; border-radius: 12px; padding: 14px 22px;
+      font-family: var(--body); font-weight: 600; font-size: 15px; cursor: pointer; transition: transform .12s, box-shadow .2s; white-space: nowrap;
+    }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(74,222,128,0.25); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* score result card */
+    section { padding: 22px 0; }
+    .card { background: var(--bg-2); border: 1px solid var(--line); border-radius: 20px; padding: clamp(20px, 4vw, 34px); }
+    .card.live { border-color: rgba(74,222,128,0.28); box-shadow: 0 0 40px rgba(74,222,128,0.06); }
+
+    .result { display: grid; grid-template-columns: 220px 1fr; gap: 30px; align-items: center; }
+    @media (max-width: 640px) { .result { grid-template-columns: 1fr; text-align: center; } }
+
+    .dial { position: relative; width: 200px; height: 200px; margin: 0 auto; }
+    .dial svg { transform: rotate(-90deg); }
+    .dial .num { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .dial .num b { font-family: var(--display); font-size: 62px; font-weight: 800; color: var(--ink); line-height: 1; }
+    .dial .num span { font-family: var(--mono); font-size: 11px; letter-spacing: 3px; color: var(--mute); margin-top: 6px; }
+    .pill { display: inline-block; margin-top: 8px; padding: 5px 16px; border-radius: 20px; font-family: var(--display); font-weight: 700; font-size: 14px; letter-spacing: 1px; }
+    .pill.readable { background: rgba(74,222,128,0.12); color: var(--green); border: 1px solid rgba(74,222,128,0.4); }
+    .pill.mixed { background: rgba(251,191,36,0.1); color: var(--warn); border: 1px solid rgba(251,191,36,0.35); }
+    .pill.noisy { background: rgba(248,113,113,0.1); color: var(--red); border: 1px solid rgba(248,113,113,0.35); }
+
+    .rtoken { font-family: var(--display); font-weight: 800; color: var(--ink); font-size: 30px; margin-bottom: 4px; }
+    .rmeta { font-family: var(--mono); font-size: 13px; color: var(--mute); margin-bottom: 18px; }
+
+    .signals { display: flex; flex-direction: column; gap: 13px; }
+    .sig { }
+    .sig .row { display: flex; justify-content: space-between; font-size: 14px; color: var(--ink); margin-bottom: 5px; }
+    .sig .row .v { font-family: var(--mono); color: var(--green); }
+    .bar { height: 8px; background: #12211a; border-radius: 5px; overflow: hidden; }
+    .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--green-deep), var(--green)); border-radius: 5px; transition: width .5s ease; }
+    .verdict { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .verdict .lbl { font-family: var(--mono); font-size: 11px; letter-spacing: 2px; color: var(--dim); }
+    .verdict p { color: var(--ink); font-size: 15px; margin-top: 4px; }
+
+    /* gate lock */
+    .lock { margin-top: 18px; padding: 20px; border: 1px dashed rgba(74,222,128,0.3); border-radius: 14px; text-align: center; background: rgba(74,222,128,0.03); }
+    .lock h4 { font-family: var(--display); color: var(--ink); font-size: 17px; margin-bottom: 6px; }
+    .lock p { font-size: 14px; margin-bottom: 14px; }
+    .gaterow { display: flex; gap: 8px; max-width: 440px; margin: 0 auto; }
+    .gaterow input { flex: 1; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 11px 14px; color: var(--ink); font-family: var(--mono); font-size: 13px; outline: none; }
+    .gaterow input:focus { border-color: rgba(74,222,128,0.5); }
+    .gaterow .btn { padding: 11px 18px; font-size: 14px; }
+    .tierline { margin-top: 12px; font-family: var(--mono); font-size: 12px; color: var(--mute); }
+    .tierline b { color: var(--green); }
+
+    /* watchlist */
+    .sec-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+    .sec-head h2 { font-family: var(--display); font-weight: 700; color: var(--ink); font-size: 22px; }
+    .sec-head .hint { font-family: var(--mono); font-size: 12px; color: var(--dim); }
+    .list { display: flex; flex-direction: column; gap: 10px; }
+    .row-item { display: grid; grid-template-columns: 64px 90px 1fr; gap: 16px; align-items: center; background: var(--bg-2); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; cursor: pointer; transition: border-color .2s, transform .12s; }
+    .row-item:hover { border-color: rgba(74,222,128,0.3); transform: translateX(2px); }
+    .row-item .sc { font-family: var(--display); font-weight: 800; font-size: 26px; text-align: center; }
+    .row-item .sc.readable { color: var(--green); }
+    .row-item .sc.mixed { color: var(--warn); }
+    .row-item .sc.noisy { color: var(--red); }
+    .row-item .tk { font-family: var(--mono); font-size: 15px; color: var(--ink); }
+    .row-item .vd { font-size: 13.5px; color: var(--mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .muted { color: var(--dim); font-size: 13px; font-family: var(--mono); }
+    .center { text-align: center; }
+    .spin { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(74,222,128,0.3); border-top-color: var(--green); border-radius: 50%; animation: sp .7s linear infinite; vertical-align: middle; }
+    @keyframes sp { to { transform: rotate(360deg); } }
+
+    footer { border-top: 1px solid var(--line); margin-top: 40px; padding: 26px 0 40px; text-align: center; }
+    footer .mono { font-family: var(--mono); font-size: 12px; color: var(--dim); }
+    footer a:hover { color: var(--green); }
+    .disc { max-width: 620px; margin: 10px auto 0; font-size: 12px; color: var(--dim); line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <div class="fx" aria-hidden="true"><div class="fx-grid"></div></div>
+
+  <div class="wrap">
+    <nav class="nav">
+      <a class="brand" href="/"><img src="assets/krill-token.png" alt="KRILL">KRILL</a>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="https://app.virtuals.io/virtuals/112988" target="_blank" rel="noopener">Virtuals</a>
+        <a href="https://x.com/krillintel" target="_blank" rel="noopener">X</a>
+      </div>
+    </nav>
+
+    <header class="hero">
+      <div class="eyebrow">Live Scan Terminal</div>
+      <h1>Score any launch. Read the verdict.</h1>
+      <p>Type a ticker. KRILL scores it 0–100 and explains the risk. Hold $KRILL to unlock the full signal breakdown.</p>
+      <div class="search">
+        <input id="q" type="text" placeholder="$TICKER — e.g. KRILL, NOVA" autocomplete="off" spellcheck="false">
+        <button class="btn" id="scanBtn">Scan</button>
+      </div>
+    </header>
+
+    <!-- score result -->
+    <section id="resultSec" style="display:none;">
+      <div class="card live" id="resultCard"></div>
+    </section>
+
+    <!-- watchlist -->
+    <section>
+      <div class="sec-head">
+        <h2>Public watchlist</h2>
+        <span class="hint" id="wlHint">loading…</span>
+      </div>
+      <div class="list" id="watchlist">
+        <div class="center" style="padding:30px;"><span class="spin"></span></div>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <div class="wrap">
+      <div class="mono">$KRILL · <a href="https://krill.live">krill.live</a> · Live on Virtuals · Robinhood Chain</div>
+      <p class="disc">Address-based tier check is read-only — no wallet connection or signature required. Scores are informational, not financial advice. Even $KRILL is scored honestly by the same engine.</p>
+    </div>
+  </footer>
+
+  <script>
+    'use strict';
+    const API = (location.hostname === 'krill.live' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+      ? (location.hostname === 'krill.live' ? '/api' : 'https://krill-api.gedangefek.workers.dev/api')
+      : 'https://krill-api.gedangefek.workers.dev/api';
+
+    const $ = s => document.querySelector(s);
+    const clean = t => t.trim().replace(/^\$+/, '').toUpperCase();
+    const labelClass = l => l === 'READABLE' ? 'readable' : l === 'MIXED' ? 'mixed' : 'noisy';
+    const circ = 2 * Math.PI * 84; // r=84
+
+    // last scanned token + wallet, so gate unlock can re-render
+    let current = { token: 'KRILL', wallet: null };
+
+    function dial(score, label) {
+      const off = circ * (1 - score / 100);
+      return `<div class="dial">
+        <svg width="200" height="200" viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="84" fill="none" stroke="#12211a" stroke-width="16"/>
+          <circle cx="100" cy="100" r="84" fill="none" stroke="url(#g)" stroke-width="16" stroke-linecap="round"
+            stroke-dasharray="${circ}" stroke-dashoffset="${off}"/>
+          <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#a7f3c0"/><stop offset="0.5" stop-color="#4ade80"/><stop offset="1" stop-color="#16a34a"/>
+          </linearGradient></defs>
+        </svg>
+        <div class="num"><b>${score}</b><span>CLARITY 0–100</span></div>
+      </div>`;
+    }
+
+    function signalRows(signals) {
+      return signals.map(s => `<div class="sig">
+        <div class="row"><span>${s.name.replace(/_/g,' ')}</span><span class="v">${s.value}</span></div>
+        <div class="bar"><i style="width:${s.value}%"></i></div>
+      </div>`).join('');
+    }
+
+    function renderResult(d) {
+      const lc = labelClass(d.label);
+      let right;
+      if (d.gated) {
+        right = `<div class="lock">
+          <h4>🔒 Full breakdown is token-gated</h4>
+          <p>The headline score is public. Hold <b style="color:var(--green)">$KRILL</b> to unlock the 5-signal breakdown + plain-English verdict.</p>
+          <div class="gaterow">
+            <input id="gateAddr" type="text" placeholder="paste your 0x address to check tier" autocomplete="off" spellcheck="false">
+            <button class="btn" id="gateBtn">Check</button>
+          </div>
+          <div class="tierline" id="tierLine">READER unlocks at 10,000 $KRILL · read-only, no signature</div>
+        </div>`;
+      } else {
+        right = `<div class="signals">${signalRows(d.signals)}</div>
+          <div class="verdict"><div class="lbl">VERDICT · ${d.access ? d.access.tier : ''}</div><p>${d.verdict || '—'}</p></div>`;
+      }
+      $('#resultCard').innerHTML = `<div class="result">
+        <div style="text-align:center;">
+          ${dial(d.score, d.label)}
+          <span class="pill ${lc}">${d.label}</span>
+        </div>
+        <div>
+          <div class="rtoken">$${d.token.replace(/^\$/,'')}</div>
+          <div class="rmeta">
+            <span style="font-weight:600;color:${d.safety === 'SAFE' ? 'var(--green)' : d.safety === 'CAUTION' ? 'var(--warn)' : 'var(--red)'}">${d.safety === 'SAFE' ? '✓ SAFE' : d.safety === 'CAUTION' ? '⚠ CAUTION' : '✗ NOT SAFE'}</span>
+            · ${d.decision} · ${d.holders ?? 0} holders · top ${(d.topHolderPct ?? 0).toFixed ? d.topHolderPct.toFixed(1) : d.topHolderPct}%${d.onChain ? ' · on-chain' : ''}
+          </div>
+          ${right}
+        </div>
+      </div>`;
+      $('#resultSec').style.display = 'block';
+      if (d.gated) wireGate();
+    }
+
+    function wireGate() {
+      const btn = $('#gateBtn'), inp = $('#gateAddr');
+      if (!btn) return;
+      const go = async () => {
+        const addr = inp.value.trim();
+        if (!/^0x[0-9a-fA-F]{40}$/.test(addr)) { $('#tierLine').innerHTML = '<span style="color:var(--warn)">enter a valid 0x… address</span>'; return; }
+        btn.disabled = true; $('#tierLine').innerHTML = '<span class="spin"></span> checking balance…';
+        current.wallet = addr;
+        try {
+          const g = await fetch(`${API}/gate?wallet=${addr}`).then(r => r.json());
+          $('#tierLine').innerHTML = `tier <b>${g.tier}</b> · ${g.balance.toLocaleString()} $KRILL` + (g.nextTier ? ` · next: ${g.nextTier.tier} @ ${g.nextTier.min.toLocaleString()}` : ' · max tier');
+          // re-scan with wallet to unlock breakdown if qualified
+          const d = await fetch(`${API}/score?token=${current.token}&wallet=${addr}`).then(r => r.json());
+          if (!d.gated) renderResult(d);
+          else btn.disabled = false;
+        } catch (e) { $('#tierLine').innerHTML = '<span style="color:var(--red)">check failed, try again</span>'; btn.disabled = false; }
+      };
+      btn.onclick = go;
+      inp.onkeydown = e => { if (e.key === 'Enter') go(); };
+    }
+
+    async function scan(tokenRaw) {
+      const token = clean(tokenRaw || $('#q').value || 'KRILL');
+      if (!token) return;
+      current = { token, wallet: current.wallet };
+      $('#scanBtn').disabled = true;
+      $('#resultSec').style.display = 'block';
+      $('#resultCard').innerHTML = '<div class="center" style="padding:40px;"><span class="spin"></span></div>';
+      try {
+        const q = current.wallet ? `?token=${token}&wallet=${current.wallet}` : `?token=${token}`;
+        const d = await fetch(`${API}/score${q}`).then(r => r.json());
+        renderResult(d);
+      } catch (e) {
+        $('#resultCard').innerHTML = '<div class="center muted" style="padding:30px;">scan failed — API unreachable. try again.</div>';
+      } finally { $('#scanBtn').disabled = false; }
+    }
+
+    async function loadWatchlist() {
+      try {
+        const d = await fetch(`${API}/reports`).then(r => r.json());
+        $('#wlHint').textContent = `${d.count} scored · ${d.onChain ? 'on-chain' : 'live engine'}`;
+        $('#watchlist').innerHTML = d.reports.map(r => `
+          <div class="row-item" data-token="${r.token}">
+            <div class="sc ${labelClass(r.label)}">${r.score}</div>
+            <div class="tk">${r.token}</div>
+            <div class="vd">${r.verdict}</div>
+          </div>`).join('');
+        document.querySelectorAll('.row-item').forEach(el => {
+          el.onclick = () => { const t = el.getAttribute('data-token'); $('#q').value = t; scan(t); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+        });
+      } catch (e) {
+        $('#watchlist').innerHTML = '<div class="center muted" style="padding:24px;">watchlist unavailable — API unreachable.</div>';
+        $('#wlHint').textContent = 'offline';
+      }
+    }
+
+    $('#scanBtn').onclick = () => scan();
+    $('#q').onkeydown = e => { if (e.key === 'Enter') scan(); };
+    // initial: scan KRILL + load watchlist
+    scan('KRILL');
+    loadWatchlist();
+  </script>
+</body>
+</html>

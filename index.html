@@ -67,7 +67,6 @@
       <a href="#example">Example</a>
       <a href="#try">Try it</a>
       <a href="#why">Why KRILL</a>
-      <a href="terminal.html">Terminal</a>
     </nav>
     <a class="nav-btn" href="https://x.com/krillintel" target="_blank" rel="noreferrer">Follow</a>
   </header>
@@ -289,9 +288,15 @@
 
           <div class="scorer-signals" id="scorerSignals"></div>
 
+          <div class="scorer-actions" id="scorerActions" hidden>
+            <button class="btn scorer-share" id="shareX" type="button">Share on X</button>
+            <button class="btn btn-ghost scorer-dl" id="downloadCard" type="button">Download card</button>
+          </div>
+
           <p class="scorer-note">Signals are generated live by the KRILL agent. This is intelligence, not financial advice.</p>
         </div>
       </div>
+      <canvas id="shareCanvas" width="1200" height="675" hidden aria-hidden="true"></canvas>
     </section>
 
     <!-- WHY -->
@@ -475,12 +480,20 @@
       const signalsEl = document.getElementById('scorerSignals');
       if (!form) return;
 
+      const actions = document.getElementById('scorerActions');
+      const shareBtn = document.getElementById('shareX');
+      const dlBtn = document.getElementById('downloadCard');
+      const canvas = document.getElementById('shareCanvas');
+
       const API = window.KRILL_API_BASE;
       const VERDICTS = {
         SIGNAL: { text: 'Readable and coherent. Clear enough to understand fast.', cls: 'good' },
         SCAN: { text: 'Mixed signals. Worth a closer look before acting.', cls: 'warn' },
         SKIP: { text: 'Confusing or risky. Hard to verify the story.', cls: 'bad' },
       };
+      const COLORS = { good: '#4ade80', warn: '#fbbf24', bad: '#f43f5e' };
+
+      let last = null; // { token, score, decision, signals }
 
       function labelize(name) {
         return name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
@@ -530,7 +543,10 @@
           badge.className = 'verdict-badge ' + v.cls;
           verdictText.textContent = v.text;
           renderSignals(data.signals);
-          animateScore(Math.max(0, Math.min(100, data.score || 0)));
+          const finalScore = Math.max(0, Math.min(100, data.score || 0));
+          animateScore(finalScore);
+          last = { token: data.token || token, score: finalScore, decision: data.decision || 'SCAN', signals: data.signals || [] };
+          actions.hidden = false;
           result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         } catch (e) {
           result.hidden = false;
@@ -540,6 +556,8 @@
           badge.className = 'verdict-badge warn';
           verdictText.textContent = 'Agent is offline right now. Try again in a moment.';
           signalsEl.innerHTML = '';
+          actions.hidden = true;
+          last = null;
         } finally {
           btn.disabled = false;
           btn.textContent = 'Score it';
@@ -550,6 +568,108 @@
         e.preventDefault();
         const token = input.value.trim();
         if (token) score(token);
+      });
+
+      /* ── share card: render 1200×675 PNG on canvas ── */
+      function rr(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+      }
+
+      function drawCard() {
+        if (!last) return;
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width, H = canvas.height;
+        const tone = VERDICTS[last.decision] ? VERDICTS[last.decision].cls : 'warn';
+        const accent = COLORS[tone];
+
+        // background
+        ctx.fillStyle = '#050a06';
+        ctx.fillRect(0, 0, W, H);
+        const grad = ctx.createLinearGradient(0, 0, W, H);
+        grad.addColorStop(0, 'rgba(74,222,128,0.10)');
+        grad.addColorStop(0.5, 'rgba(5,10,6,0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, H);
+        ctx.strokeStyle = 'rgba(74,222,128,0.25)';
+        ctx.lineWidth = 2;
+        rr(ctx, 24, 24, W - 48, H - 48, 28); ctx.stroke();
+
+        // brand
+        ctx.fillStyle = '#4ade80';
+        ctx.font = '700 40px "IBM Plex Sans", Arial, sans-serif';
+        ctx.fillText('KRILL', 80, 110);
+        ctx.fillStyle = '#71717a';
+        ctx.font = '400 22px "IBM Plex Sans", Arial, sans-serif';
+        ctx.fillText('LAUNCH INTELLIGENCE', 80, 145);
+
+        // token
+        ctx.fillStyle = '#fafafa';
+        ctx.font = '800 84px "IBM Plex Sans", Arial, sans-serif';
+        ctx.fillText(last.token, 80, 300);
+
+        // verdict pill
+        const vt = last.decision;
+        ctx.font = '700 30px "IBM Plex Sans", Arial, sans-serif';
+        const pw = ctx.measureText(vt).width + 56;
+        ctx.fillStyle = accent;
+        rr(ctx, 80, 340, pw, 60, 30); ctx.fill();
+        ctx.fillStyle = '#041008';
+        ctx.fillText(vt, 108, 380);
+
+        // verdict text
+        ctx.fillStyle = '#a1a1aa';
+        ctx.font = '400 28px "IBM Plex Sans", Arial, sans-serif';
+        const msg = VERDICTS[last.decision] ? VERDICTS[last.decision].text : '';
+        ctx.fillText(msg.length > 52 ? msg.slice(0, 52) + '…' : msg, 80, 470);
+
+        // score ring (right side)
+        const cx = W - 240, cy = 300, r = 130;
+        ctx.lineWidth = 22;
+        ctx.strokeStyle = 'rgba(74,222,128,0.12)';
+        ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = accent;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * last.score / 100));
+        ctx.stroke();
+        ctx.fillStyle = accent;
+        ctx.textAlign = 'center';
+        ctx.font = '800 96px "IBM Plex Sans", Arial, sans-serif';
+        ctx.fillText(String(last.score), cx, cy + 20);
+        ctx.fillStyle = '#71717a';
+        ctx.font = '400 24px "IBM Plex Sans", Arial, sans-serif';
+        ctx.fillText('CLARITY', cx, cy + 60);
+        ctx.textAlign = 'left';
+
+        // footer
+        ctx.fillStyle = '#52525b';
+        ctx.font = '400 24px "IBM Plex Sans", Arial, sans-serif';
+        ctx.fillText('krill.live  ·  scored by the KRILL agent on Robinhood Chain', 80, H - 70);
+      }
+
+      shareBtn.addEventListener('click', () => {
+        if (!last) return;
+        const url = 'https://krill.live/#try';
+        const verdict = last.decision;
+        const text = 'KRILL scored ' + last.token + ' at ' + last.score + '/100 clarity → ' + verdict +
+          '\n\nlaunch intelligence for Robinhood Chain 🦐\nscore any token yourself:';
+        const intent = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(url) + '&via=krillintel';
+        window.open(intent, '_blank', 'noopener');
+      });
+
+      dlBtn.addEventListener('click', () => {
+        if (!last) return;
+        drawCard();
+        const a = document.createElement('a');
+        a.download = 'krill-' + last.token.replace(/[^a-z0-9]/gi, '') + '-' + last.score + '.png';
+        a.href = canvas.toDataURL('image/png');
+        a.click();
       });
     })();
 

@@ -840,6 +840,20 @@ ul { list-style: none; }
   font-variant-numeric: tabular-nums;
 }
 
+.scorer-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.scorer-share,
+.scorer-dl {
+  cursor: pointer;
+  border: none;
+  font-size: 14px;
+}
+
 .scorer-note {
   font-size: 12px;
   color: var(--dim);
